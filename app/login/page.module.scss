@@ -1,0 +1,13 @@
+.root {
+    position: relative;
+    background: linear-gradient(to bottom, #38a3d1 0%,#90dffe 100%);
+    width: 100%;
+    min-height: 100vh;
+}
+
+.container {
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    transform: translate(-50%, -50%);
+}
