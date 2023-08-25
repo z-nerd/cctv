@@ -1,78 +1,46 @@
-"use client"
-import { usePageHooks } from "./hooks";
-import { ProductCard } from "@/components/product-card";
-import { AccountCircle, Menu as MenuIcon } from "@mui/icons-material";
-import { AppBar, Box, Button, Container, Grid, IconButton, Link, Toolbar, Typography } from "@mui/material";
+import { fetcher } from "@/hooks/restful/fetcher"
+import HomeClient from "./HomeClient"
+import { IProductsPagination } from "@/types/api/product.type"
 
 
-export default function Home() {
-  const {
-    userInfo,
-    productsData,
-    productsIsSuccess,
-    productsIsFetched,
-  } = usePageHooks()
+const getProducts = async () => {
+  try {
+    const res =  await fetcher<IProductsPagination>("https://cctv.deno.dev/api", "/products", {
+      method: "GET",
+      next: {
+        revalidate: 600 ,
 
+      }
+    })
+
+    return res
+  } catch (error: any) {
+    const res = {
+      error: {
+        name: error?.name as String,
+        message: error?.message as String,
+        ...error,
+      }
+    }
+    console.log(res)
+
+    return res
+  }
+}
+
+
+export default async function Home() {
+  const products = await getProducts()
 
   return (
     <main>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            CCTV Store
-          </Typography>
-          {userInfo?.id
-            ?
-            <Box sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-              <Typography
-                variant="h6"
-                component="div"
-                sx={{ px: 1 }}>
-                {userInfo.fullname}
-              </Typography>
-              <AccountCircle />
-            </Box>
-            :
-            <Link href="/login" color="text.secondary">
-              {"Login"}
-            </Link>
-          }
-        </Toolbar>
-      </AppBar>
-      <Container sx={{ py: 8 }} maxWidth="md">
-        <Grid container spacing={4}>
-          {
-            (productsIsSuccess &&
-              productsData
-            )
-            && productsData.data.map(product => {
-              return (
-                <Grid item key={product._id} xs={12} sm={6} md={4}>
-                  <ProductCard
-                    description={product.description}
-                    name={product.name}
-                    price={product.price}
-                    productImage={product.productImage}
-                  />
-                </Grid>
-              )
-            })
-          }
-        </Grid>
-      </Container>
+      {
+        !("error" in products) &&
+        <HomeClient 
+        productsData={products}
+        productsIsSuccess={true} />
+      }
+      
     </main>
   )
 }
